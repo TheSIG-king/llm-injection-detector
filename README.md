@@ -30,4 +30,4 @@ d'un WAF, mais pour les LLM.
 Python · HuggingFace · scikit-learn / PyTorch · FastAPI
 
 ## Statut
-🚧 En cours de développement — projet d'études (2025-2027)
+🚧 En cours de développement — projet d'études (2026-2028)
