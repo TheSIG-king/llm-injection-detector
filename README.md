@@ -20,7 +20,7 @@ d'un WAF, mais pour les LLM.
 - Fuite de prompt système (LLM07:2025)
 
 ## Roadmap
-- [ ] Phase 1 — Constitution et analyse du dataset
+- [x] Phase 1 — Constitution et analyse du dataset
 - [ ] Phase 2 — Détecteur baseline (embeddings + classifieur)
 - [ ] Phase 3 — Middleware temps réel (API)
 - [ ] Phase 4 — Robustesse adversariale
@@ -31,3 +31,4 @@ Python · HuggingFace · scikit-learn / PyTorch · FastAPI
 
 ## Statut
 🚧 En cours de développement — projet d'études (2026-2028)
+
