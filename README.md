@@ -41,8 +41,8 @@ Détecteur baseline : embeddings `all-MiniLM-L6-v2` + régression logistique.
 | v1      | 0.94             | 27            | Biais de registre détecté |
 | v2      | 0.97             | 14            | Après correction du biais |
 
-**Point clé :** un test manuel a révélé que la v1 bloquait des demandes légitimes
-(« write a cover letter ») — un biais de registre issu d'un dataset de bénins trop
+**Point clé : un test manuel a révélé que la v1 bloquait des demandes légitimes
+(« write a cover letter ») un biais de registre issu d'un dataset de bénins trop
 homogène. Le rééquilibrage par catégorie (v2) a éliminé ces faux positifs et
 amélioré toutes les métriques.
 
