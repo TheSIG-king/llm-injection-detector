@@ -22,7 +22,7 @@ d'un WAF, mais pour les LLM.
 # Roadmap
 - [x] Phase 1 — Constitution et analyse du dataset
 - [x] Phase 2 — Détecteur baseline (embeddings + classifieur)
-- [ ] Phase 3 — Middleware temps réel (API)
+- [X] Phase 3 — Middleware temps réel (API)
 - [ ] Phase 4 — Robustesse adversariale
 - [ ] Phase 5 — Packaging, benchmark, démo
 
@@ -46,3 +46,10 @@ Détecteur baseline : embeddings `all-MiniLM-L6-v2` + régression logistique.
 homogène. Le rééquilibrage par catégorie (v2) a éliminé ces faux positifs et
 amélioré toutes les métriques.
 
+# API
+Le détecteur est exposé via une API FastAPI :
+- `POST /detect` — analyse un texte et renvoie un verdict (bénin/malveillant + confiance).
+- `POST /chat` — middleware complet : détecte, puis bloque ou transmet au LLM.
+
+Lancement : `uvicorn app.main:app --reload`
+Documentation interactive : `http://127.0.0.1:8000/docs`

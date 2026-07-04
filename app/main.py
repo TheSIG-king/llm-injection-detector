@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from sentence_transformers import SentenceTransformer
+from app.llm import call_llm
 import joblib
 import logging
 
@@ -40,7 +41,13 @@ class DetectionResponse(BaseModel):
     text: str
     is_malicious: bool
     confidence: float
+class ChatRequest(BaseModel):
+    message: str
 
+class ChatResponse(BaseModel):
+    blocked: bool
+    detection_confidence: float
+    response: str
 # Route de santé (vérifier que l'API tourne) 
 @app.get("/")
 def health():
@@ -65,4 +72,35 @@ def detect(request: DetectionRequest):
         text=request.text,
         is_malicious=bool(prediction == 1),
         confidence=float(proba[prediction]),
+    )
+
+@app.post("/chat", response_model=ChatResponse)
+def chat(request: ChatRequest):
+    # 1. Passer le message au détecteur
+    embedding = encoder.encode([request.message])
+    prediction = classifier.predict(embedding)[0]
+    proba = classifier.predict_proba(embedding)[0]
+    is_malicious = bool(prediction == 1)
+    confidence = float(proba[prediction])
+
+    # 2. Décision du middleware
+    if is_malicious:
+        logger.warning(
+            f"BLOCKED | confidence={confidence:.3f} | message={request.message[:80]!r}"
+        )
+        return ChatResponse(
+            blocked=True,
+            detection_confidence=confidence,
+            response="Requête bloquée : contenu potentiellement malveillant détecté.",
+        )
+
+    # 3. Si bénin, transmettre au LLM
+    logger.info(
+        f"ALLOWED | confidence={confidence:.3f} | message={request.message[:80]!r}"
+    )
+    llm_response = call_llm(request.message)
+    return ChatResponse(
+        blocked=False,
+        detection_confidence=confidence,
+        response=llm_response,
     )
