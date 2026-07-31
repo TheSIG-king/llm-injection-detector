@@ -123,5 +123,3 @@ Honnête sur ce que le projet ne résout *pas* :
 Python · HuggingFace Sentence Transformers · scikit-learn · FastAPI · Gradio
 
 ## Licence
-
-MIT

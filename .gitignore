@@ -1,6 +1,6 @@
 .venv/
 data/
-models/
+# models/   (on versionne les modèles, ils sont légers)
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
