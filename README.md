@@ -1,55 +1,126 @@
-# llm-injection-detector
+# 🛡️ LLM Injection Detector
 
-Real-time prompt injection & jailbreak detection middleware for LLM applications.
+**Real-time prompt injection & jailbreak detection middleware for LLM applications.**
 
-# Le problème
-Les applications basées sur des LLM sont exposées à des vulnérabilités propres à
-l'IA. La prompt injection est classée n°1 du OWASP Top 10 for LLM Applications
-(édition 2025, LLM01). Une attaque réussie peut entraîner une fuite de données
-sensibles, un contournement des garde-fous ou une manipulation du comportement
-de l'application.
+*Read this in [French / Français](README.fr.md).*
 
-# L'objectif
-Construire un middleware défensif qui s'intercale entre l'utilisateur et le LLM,
-et classe chaque entrée comme bénigne ou malveillante en temps réel — à la manière
-d'un WAF, mais pour les LLM.
+<!-- Once your HuggingFace Space is live, replace the URL below -->
+[![Live Demo](https://img.shields.io/badge/🤗_Live_Demo-HuggingFace_Spaces-yellow)](https://huggingface.co/spaces/YOUR_USERNAME/YOUR_SPACE)
+![Python](https://img.shields.io/badge/Python-3.10+-blue)
+![License](https://img.shields.io/badge/License-MIT-green)
 
-# Menaces couvertes
-- Prompt injection directe et indirecte (LLM01:2025)
-- Jailbreak / contournement de garde-fous
-- Fuite de prompt système (LLM07:2025)
+Prompt injection is ranked **#1 in the OWASP Top 10 for LLM Applications (2025, LLM01)**.
+This project builds a defensive middleware that sits between the user and the LLM and
+classifies every input as benign or malicious in real time — like a WAF, but for LLMs.
 
-# Roadmap
-- [x] Phase 1 — Constitution et analyse du dataset
-- [x] Phase 2 — Détecteur baseline (embeddings + classifieur)
-- [X] Phase 3 — Middleware temps réel (API)
-- [ ] Phase 4 — Robustesse adversariale
-- [ ] Phase 5 — Packaging, benchmark, démo
+---
 
-# Stack
-Python · HuggingFace · scikit-learn / PyTorch · FastAPI
+## 📊 Key result: adversarial hardening
 
-# Statut
-En cours de développement — projet d'études (2026-2028)
+Adversarial training reduced the evasion rate on **unseen** obfuscated attacks
+from **33.3% to 2.8%** — a 30-point improvement — by adding just 48 adversarial
+examples (1.5% of the dataset).
 
-# Résultats actuels
+![Adversarial hardening results](adversarial_hardening.png)
 
-Détecteur baseline : embeddings `all-MiniLM-L6-v2` + régression logistique.
+*Tested on 36 attacks generated from base phrases absent from the training set (no leakage).*
 
-| Version | F1 (malveillant) | Faux négatifs | Note |
-|---------|------------------|---------------|------|
-| v1      | 0.94             | 27            | Biais de registre détecté |
-| v2      | 0.97             | 14            | Après correction du biais |
+---
 
-**Point clé : un test manuel a révélé que la v1 bloquait des demandes légitimes
-(« write a cover letter ») un biais de registre issu d'un dataset de bénins trop
-homogène. Le rééquilibrage par catégorie (v2) a éliminé ces faux positifs et
-amélioré toutes les métriques.
+## Results at a glance
 
-# API
-Le détecteur est exposé via une API FastAPI :
-- `POST /detect` — analyse un texte et renvoie un verdict (bénin/malveillant + confiance).
-- `POST /chat` — middleware complet : détecte, puis bloque ou transmet au LLM.
+| Metric | Value |
+|--------|-------|
+| Detection F1 (hardened model) | 0.97 |
+| Evasion rate — before hardening | 33.3% |
+| Evasion rate — after hardening | **2.8%** |
+| Adversarial examples added | 48 (1.5% of dataset) |
+| Non-regression on legitimate inputs | 6/6 ✅ |
 
-Lancement : `uvicorn app.main:app --reload`
-Documentation interactive : `http://127.0.0.1:8000/docs`
+### Robustness map (3 attack surfaces)
+
+| Attack category | Evasion rate | Real weakness |
+|-----------------|--------------|---------------|
+| Obfuscation (surface) | 28.6% | Most vulnerable — fixed by hardening |
+| Semantic (meaning) | 14.3% | Robust: embeddings capture intent |
+| Multilingual | 12.5% | Fragile on non-Latin scripts |
+
+---
+
+## How it works
+
+The middleware intercepts each message, runs it through the detector, and either
+blocks it or forwards it to the LLM:
+
+```
+user message
+     │
+     ▼
+[ detector ]  ──malicious?──►  YES  →  block, return a refusal
+     │
+     NO
+     │
+     ▼
+[ LLM ]  →  return the response
+```
+
+**Pipeline:** text → sentence embeddings (`all-MiniLM-L6-v2`) → logistic-regression
+classifier → verdict + confidence score.
+
+---
+
+## Quick start
+
+```bash
+# 1. Clone and set up
+git clone https://github.com/TheSIG-king/llm-injection-detector.git
+cd llm-injection-detector
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+
+# 2. Run the interactive demo (compares v2 vs v3 side by side)
+python demo.py
+
+# 3. Or run the API
+uvicorn app.main:app --reload
+# Interactive docs at http://127.0.0.1:8000/docs
+```
+
+### API endpoints
+
+| Endpoint | Description |
+|----------|-------------|
+| `POST /detect` | Analyze a text → verdict (benign/malicious) + confidence |
+| `POST /chat` | Full middleware: detect, then block or forward to the LLM |
+
+---
+
+## Project journey
+
+Built in five phases, each ending with a concrete deliverable:
+
+1. **Dataset** — unified & balanced 3,120 examples from 3 heterogeneous public sources.
+2. **Baseline detector** — embeddings + classifier; diagnosed and fixed a register bias (F1 0.95 → 0.97).
+3. **Middleware** — FastAPI service with detection, decision logic, and logging.
+4. **Adversarial robustness** — attack mapping + hardening via adversarial training (33.3% → 2.8% evasion).
+5. **Packaging** — interactive demo, benchmark, documentation.
+
+---
+
+## Known limitations
+
+Honest about what this does *not* solve:
+
+- **Multilingual coverage is uneven** — Latin scripts are handled well; non-Latin scripts (Arabic, and Chinese at low confidence) remain fragile. A multilingual embedding model would be the fix.
+- **The confidence "grey zone"** — very polite/indirect phrasings can push confidence toward 0.5. A graded response (allow / flag / block) would handle this better than a binary threshold.
+- **Adversarial hardening is a moving target** — this neutralizes known obfuscation techniques, but new ones can be crafted. It raises the cost of attack; it does not "solve" it.
+
+---
+
+## Tech stack
+
+Python · HuggingFace Sentence Transformers · scikit-learn · FastAPI · Gradio
+
+## License
+
+MIT
