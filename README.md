@@ -5,7 +5,7 @@
 *Read this in [French / Français](README.fr.md).*
 
 <!-- Once your HuggingFace Space is live, replace the URL below -->
-[![Live Demo](https://img.shields.io/badge/🤗_Live_Demo-HuggingFace_Spaces-yellow)](https://huggingface.co/spaces/YOUR_USERNAME/YOUR_SPACE)
+[![Live Demo](https://img.shields.io/badge/🤗_Live_Demo-HuggingFace_Spaces-yellow)](https://huggingface.co/spaces/TheSIG-king/YOUR_SPACE)
 ![Python](https://img.shields.io/badge/Python-3.10+-blue)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
